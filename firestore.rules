@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Auth UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - address: string (optional)
+    //   - phone: string (optional)
+    //
+    // Collection: orders
+    // Document ID: {orderId} (Auto-generated)
+    // Fields:
+    //   - userId: string (required, immutable)
+    //   - items: list (required, non-empty)
+    //   - total: number (required, positive)
+    //   - status: string (required, enum)
+    //   - address: string (required)
+    //   - phone: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Domain Validators
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100));
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'items', 'total', 'status', 'address', 'phone', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.items is list && data.items.size() > 0 &&
+             data.total is number && data.total > 0 &&
+             data.status in ['pending', 'paid', 'delivered', 'cancelled'] &&
+             data.address is string && data.address.size() > 10 &&
+             data.phone is string && data.phone.size() >= 10;
+    }
+
+    // Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidOrder(request.resource.data);
+      allow update: if isDocOwner() && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+                    isValidOrder(request.resource.data);
+    }
+  }
+}

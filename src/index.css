@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Crimson Pro", Georgia, serif;
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  
+  --color-editorial-bg: #FDFCFB;
+  --color-editorial-ink: #1C1C1C;
+  --color-editorial-accent: #B48F40;
+  --color-editorial-muted: #8E8E8E;
+  --color-editorial-border: #E5E1DA;
+  --color-editorial-sidebar: #F8F5F0;
+  --color-editorial-hover: #F5F2ED;
+  --color-editorial-security: #2D5A27;
+}
+
+@layer base {
+  body {
+    @apply bg-editorial-bg text-editorial-ink font-sans antialiased;
+  }
+  
+  h1, h2, h3, .font-serif {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .section-title {
+    @apply block font-serif italic text-[13px] mb-6 text-editorial-muted uppercase tracking-wider;
+  }
+  
+  .editorial-card {
+    @apply bg-white border border-editorial-border p-6 shadow-none rounded-none;
+  }
+  
+  .editorial-button {
+    @apply block w-full p-4 bg-editorial-ink text-white text-center text-[12px] uppercase tracking-[0.1em] font-semibold transition-colors hover:bg-editorial-accent disabled:opacity-50;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-editorial-border rounded-full;
+  }
+}
