@@ -1,50 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-serif: "Crimson Pro", Georgia, serif;
-  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   
-  --color-editorial-bg: #FDFCFB;
-  --color-editorial-ink: #1C1C1C;
-  --color-editorial-accent: #B48F40;
-  --color-editorial-muted: #8E8E8E;
-  --color-editorial-border: #E5E1DA;
-  --color-editorial-sidebar: #F8F5F0;
-  --color-editorial-hover: #F5F2ED;
-  --color-editorial-security: #2D5A27;
+  --color-modern-bg: #0A0B0E;
+  --color-modern-surface: #12141C;
+  --color-modern-mint: #00FF94;
+  --color-modern-accent: #22D3EE;
+  --color-modern-muted: #94A3B8;
+  --color-modern-border: rgba(255, 255, 255, 0.08);
+  --color-modern-glass: rgba(18, 20, 28, 0.7);
 }
 
 @layer base {
   body {
-    @apply bg-editorial-bg text-editorial-ink font-sans antialiased;
-  }
-  
-  h1, h2, h3, .font-serif {
-    @apply font-serif;
+    @apply bg-modern-bg text-slate-100 font-sans antialiased selection:bg-modern-mint selection:text-modern-bg;
   }
 }
 
 @layer utilities {
-  .section-title {
-    @apply block font-serif italic text-[13px] mb-6 text-editorial-muted uppercase tracking-wider;
+  .section-tag {
+    @apply inline-flex items-center gap-2 px-3 py-1 bg-modern-mint/10 border border-modern-mint/20 rounded-full text-[11px] font-bold text-modern-mint uppercase tracking-[0.05em];
   }
   
-  .editorial-card {
-    @apply bg-white border border-editorial-border p-6 shadow-none rounded-none;
+  .modern-card {
+    @apply bg-modern-surface border border-modern-border p-6 rounded-3xl shadow-2xl relative overflow-hidden backdrop-blur-xl;
   }
   
-  .editorial-button {
-    @apply block w-full p-4 bg-editorial-ink text-white text-center text-[12px] uppercase tracking-[0.1em] font-semibold transition-colors hover:bg-editorial-accent disabled:opacity-50;
+  .modern-button {
+    @apply relative flex items-center justify-center gap-2 px-6 py-4 bg-modern-mint text-modern-bg font-bold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(0,255,148,0.4)] active:scale-95 disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  .glass-nav {
+    @apply bg-modern-glass backdrop-blur-md border-b border-modern-border sticky top-0 z-50;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-modern-bg;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-editorial-border rounded-full;
+    @apply bg-modern-border rounded-full hover:bg-slate-700 transition-colors;
   }
 }

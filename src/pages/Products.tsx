@@ -103,23 +103,23 @@ export function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-editorial-bg py-24 px-6 sm:px-12 lg:px-16">
+    <div className="min-h-screen bg-modern-bg py-32 px-6 sm:px-12 lg:px-16">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-baseline gap-12 mb-24 border-b border-editorial-border pb-12">
+        <div className="flex flex-col lg:flex-row justify-between items-end gap-12 mb-20">
           <div>
-            <span className="section-title">Catalogue Raisonné</span>
-            <h1 className="text-5xl font-serif font-black text-editorial-ink tracking-tight uppercase">Product Registry</h1>
+            <div className="section-tag mb-4">Inventory Manifest</div>
+            <h1 className="text-6xl font-black text-white italic tracking-tighter">Product <span className="text-modern-mint">Registry.</span></h1>
           </div>
           
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-2 p-1.5 bg-modern-surface border border-modern-border rounded-2xl backdrop-blur-xl">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`text-[10px] uppercase tracking-[0.2em] font-bold px-4 py-2 transition-all ${
+                className={`text-[11px] uppercase tracking-[0.1em] font-black px-6 py-2.5 rounded-xl transition-all ${
                   selectedCategory === cat 
-                  ? 'text-editorial-accent bg-editorial-hover' 
-                  : 'text-editorial-muted hover:text-editorial-ink'
+                  ? 'bg-modern-mint text-modern-bg shadow-[0_0_15px_rgba(0,255,148,0.3)]' 
+                  : 'text-modern-muted hover:text-white hover:bg-white/5'
                 }`}
               >
                 {cat}
@@ -128,46 +128,59 @@ export function Products() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-1 gap-y-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <AnimatePresence mode="popLayout">
             {filteredProducts.map((product) => (
               <motion.div
                 layout
                 key={product.id}
-                className="group relative"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.5 }}
+                className="modern-card p-0 group"
               >
-                <div className="aspect-[3/4] overflow-hidden bg-editorial-sidebar mb-6 border border-editorial-border">
+                <div className="aspect-square overflow-hidden relative">
                   <img 
                     src={product.image} 
                     alt={product.name}
-                    className="w-full h-full object-cover filter grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700"
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                     referrerPolicy="no-referrer"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-modern-surface via-transparent to-transparent opacity-60" />
+                  <div className="absolute top-4 right-4 bg-modern-bg/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                    <span className="text-modern-mint font-mono font-bold">₹{product.price}</span>
+                  </div>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-serif font-bold text-lg text-editorial-ink truncate">{product.name}</h3>
-                    <p className="font-serif font-bold text-lg text-editorial-ink">₹{product.price}</p>
-                  </div>
-                  
-                  <div className="flex justify-between text-[11px] uppercase tracking-widest text-editorial-muted font-bold">
-                    <span>{product.category}</span>
-                    <span>{product.unit}</span>
+                <div className="p-6">
+                  <div className="mb-4">
+                    <h3 className="font-bold text-xl text-white truncate group-hover:text-modern-mint transition-colors italic uppercase">{product.name}</h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] uppercase font-black tracking-widest text-modern-muted">{product.category}</span>
+                      <span className="w-1 h-1 bg-white/20 rounded-full" />
+                      <span className="text-[10px] uppercase font-black tracking-widest text-modern-muted">{product.unit}</span>
+                    </div>
                   </div>
 
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className={`w-full py-4 text-[11px] uppercase tracking-[0.1em] font-bold transition-all border ${
+                    className={`w-full py-4 text-[11px] uppercase tracking-[0.2em] font-black transition-all rounded-2xl flex items-center justify-center gap-2 ${
                       addedIds.has(product.id)
-                      ? 'bg-editorial-hover border-editorial-accent text-editorial-accent'
-                      : 'bg-editorial-ink border-editorial-ink text-white hover:bg-editorial-accent'
+                      ? 'bg-modern-mint text-modern-bg'
+                      : 'bg-white/5 border border-white/10 text-white hover:bg-modern-mint hover:text-modern-bg hover:border-modern-mint'
                     }`}
                   >
                     {addedIds.has(product.id) ? (
-                      <span className="flex items-center justify-center gap-2"><Check className="h-4 w-4" /> Finalized</span>
+                      <>
+                        <Check className="h-4 w-4" /> 
+                        Manifested
+                      </>
                     ) : (
-                      'Append to Cart'
+                      <>
+                        <Plus className="h-4 w-4" />
+                        Append to Cart
+                      </>
                     )}
                   </button>
                 </div>

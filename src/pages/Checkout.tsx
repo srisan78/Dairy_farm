@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
-import { auth, db } from '../firebase';
-import { addDoc, collection } from 'firebase/firestore';
-import { ShieldCheck, CreditCard, MapPin, Phone, ArrowLeft, Loader2, Check } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { useOrderStore } from '../store/orderStore';
+import { ShieldCheck, CreditCard, MapPin, Phone, ArrowLeft, Loader2, Check, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function Checkout() {
   const { items, total, clearCart } = useCartStore();
+  const { user } = useAuthStore();
+  const { addOrder } = useOrderStore();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const user = auth.currentUser;
 
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
@@ -29,32 +30,33 @@ export function Checkout() {
     }
 
     setLoading(true);
-    try {
-      const orderRef = await addDoc(collection(db, 'orders'), {
-        userId: user.uid,
-        items: items.map(i => ({
-          id: i.id,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          image: i.image
-        })),
-        total: total(),
-        address: formData.address,
-        phone: formData.phone,
-        status: 'paid',
-        createdAt: new Date().toISOString()
-      });
+    // Simulate payment processing
+    setTimeout(() => {
+      try {
+        const newOrder = {
+          id: Math.random().toString(36).slice(2, 12).toUpperCase(),
+          userId: user.uid,
+          items: items.map(i => ({
+            ...i
+          })),
+          total: total(),
+          address: formData.address,
+          phone: formData.phone,
+          status: 'paid' as const,
+          createdAt: Date.now()
+        };
 
-      setSuccess(true);
-      clearCart();
-      setTimeout(() => navigate('/dashboard'), 3000);
-    } catch (err) {
-      console.error(err);
-      alert('Order processing failed. Please check security registry.');
-    } finally {
-      setLoading(false);
-    }
+        addOrder(newOrder);
+        setSuccess(true);
+        clearCart();
+        setTimeout(() => navigate('/dashboard'), 3000);
+      } catch (err) {
+        console.error(err);
+        alert('Order processing failed. Local storage error.');
+      } finally {
+        setLoading(false);
+      }
+    }, 2000);
   };
 
   if (items.length === 0 && !success) {
@@ -83,116 +85,162 @@ export function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-editorial-bg py-24 px-6 sm:px-12 lg:px-16">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-24 divide-x divide-editorial-border lg:-mx-16">
+    <div className="min-h-screen bg-modern-bg py-32 px-6 sm:px-12 lg:px-16 overflow-hidden relative">
+      {/* Background Orbs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-modern-mint/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-modern-accent/5 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
           {/* Form Side */}
-          <div className="flex-1 lg:px-16">
-            <span className="section-title">Logistics & Settlement</span>
-            <h1 className="text-5xl font-serif font-black text-editorial-ink mb-16 uppercase tracking-tight">Financial Dispatch</h1>
+          <div className="flex-1 space-y-8">
+            <div className="mb-12">
+              <div className="section-tag mb-4">Financial Protocol</div>
+              <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">Settlement <span className="text-modern-mint">Gateway.</span></h1>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-12">
-              <div className="grid md:grid-cols-2 gap-12">
-                <div className="border-b border-editorial-border pb-2">
-                  <label className="text-[10px] uppercase font-bold text-editorial-muted tracking-widest block mb-1">Entity Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full py-2 bg-transparent text-editorial-ink outline-none font-serif text-lg"
-                  />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="modern-card !p-8 md:!p-10 space-y-8 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-modern-mint opacity-20 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black text-white/40 tracking-[0.2em] ml-1">Entity Name</label>
+                    <div className="relative group/field">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-modern-muted group-focus-within/field:text-modern-mint transition-colors" />
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        className="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-modern-mint/50 focus:bg-modern-mint/5 transition-all text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase font-black text-white/40 tracking-[0.2em] ml-1">Communication Link</label>
+                    <div className="relative group/field">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-modern-muted group-focus-within/field:text-modern-mint transition-colors" />
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        className="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-modern-mint/50 focus:bg-modern-mint/5 transition-all text-sm font-bold"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="border-b border-editorial-border pb-2">
-                  <label className="text-[10px] uppercase font-bold text-editorial-muted tracking-widest block mb-1">Communication Channel</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full py-2 bg-transparent text-editorial-ink outline-none font-serif text-lg"
-                  />
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black text-white/40 tracking-[0.2em] ml-1">Coordinate Destination</label>
+                  <div className="relative group/field">
+                    <MapPin className="absolute left-4 top-5 h-4 w-4 text-modern-muted group-focus-within/field:text-modern-mint transition-colors" />
+                    <textarea
+                      required
+                      placeholder="Coordinates or Physical Address..."
+                      rows={3}
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      className="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-modern-mint/50 focus:bg-modern-mint/5 transition-all text-sm font-bold resize-none"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="border-b border-editorial-border pb-2">
-                <label className="text-[10px] uppercase font-bold text-editorial-muted tracking-widest block mb-1">Physical Destination</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  className="w-full py-2 bg-transparent text-editorial-ink outline-none font-serif text-lg resize-none"
-                />
-              </div>
-
-              <div className="space-y-6">
-                <span className="text-[10px] uppercase font-bold text-editorial-muted tracking-widest block">Clearing Method</span>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, paymentMethod: 'card'})}
-                    className={`py-4 border text-[11px] uppercase tracking-widest font-bold transition-all ${
-                      formData.paymentMethod === 'card' ? 'bg-editorial-ink text-white border-editorial-ink' : 'border-editorial-border text-editorial-muted hover:border-editorial-ink hover:text-editorial-ink'
-                    }`}
-                  >
-                    Credit Facility
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, paymentMethod: 'cod'})}
-                    className={`py-4 border text-[11px] uppercase tracking-widest font-bold transition-all ${
-                      formData.paymentMethod === 'cod' ? 'bg-editorial-ink text-white border-editorial-ink' : 'border-editorial-border text-editorial-muted hover:border-editorial-ink hover:text-editorial-ink'
-                    }`}
-                  >
-                    Settlement on Arrival
-                  </button>
+              <div className="modern-card !p-8">
+                <div className="flex items-center gap-3 mb-8">
+                   <div className="p-2 bg-modern-mint/10 rounded-lg"><CreditCard className="h-5 w-5 text-modern-mint" /></div>
+                   <h3 className="text-lg font-black text-white italic tracking-tighter uppercase">Clearing Methods</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'card', label: 'NEURAL CREDIT', balance: 'SECURE TUNNEL' },
+                    { id: 'cod', label: 'DESTINATION SETTLEMENT', balance: 'ON ARRIVAL' }
+                  ].map((method) => (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() => setFormData({...formData, paymentMethod: method.id})}
+                      className={`relative p-5 rounded-2xl border transition-all text-left group overflow-hidden ${
+                        formData.paymentMethod === method.id 
+                        ? 'bg-modern-mint/10 border-modern-mint shadow-[0_0_15px_rgba(0,255,148,0.1)]' 
+                        : 'bg-white/5 border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <div className={`absolute top-0 right-0 w-2 h-2 rounded-bl-xl transition-colors ${formData.paymentMethod === method.id ? 'bg-modern-mint' : 'bg-transparent'}`} />
+                      <p className={`text-[11px] font-black uppercase tracking-widest mb-1 ${formData.paymentMethod === method.id ? 'text-modern-mint' : 'text-white/60'}`}>{method.label}</p>
+                      <p className="text-[10px] font-mono text-white/30 group-hover:text-white/50">{method.balance}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <button
                 disabled={loading}
-                className="editorial-button"
+                className="modern-button w-full !py-6 !text-lg shadow-[0_0_30px_rgba(0,255,148,0.2)]"
               >
-                {loading ? 'Authenticating Transaction...' : `Finalize Settlement: ₹${total().toFixed(2)}`}
+                {loading ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Validating Transaction...
+                  </div>
+                ) : (
+                  <span className="flex items-center gap-3">
+                    Execute Secure Settlement: ₹{total().toFixed(2)} <ShieldCheck className="h-6 w-6" />
+                  </span>
+                )}
               </button>
               
-              <div className="flex items-center gap-4 text-editorial-security text-[10px] uppercase font-bold pt-8">
-                 <ShieldCheck className="h-4 w-4" />
-                 Encrypted Point-to-Point Tunnel Active
+              <div className="flex items-center justify-center gap-3 text-white/20 text-[10px] font-black uppercase tracking-[0.3em] pt-4">
+                 <div className="w-1.5 h-1.5 bg-modern-mint rounded-full animate-pulse" />
+                 End-to-End Encryption Protocol Active
               </div>
             </form>
           </div>
 
           {/* Summary Side */}
-          <div className="w-full lg:w-[400px] lg:px-16 bg-editorial-sidebar pt-12">
-            <span className="section-title">Inventory Manifest</span>
-            <div className="space-y-8 mt-12">
-              {items.map(item => (
-                <div key={item.id} className="flex gap-6 pb-6 border-b border-editorial-border border-dotted">
-                  <div className="w-20 h-20 bg-editorial-bg border border-editorial-border overflow-hidden">
-                    <img src={item.image} className="w-full h-full object-cover filter grayscale-[0.2]" />
+          <div className="w-full lg:w-[450px]">
+            <div className="modern-card !p-0 overflow-hidden border border-modern-mint/10 bg-gradient-to-br from-modern-surface to-modern-bg">
+              <div className="p-8 border-b border-white/5">
+                <h3 className="text-xl font-black text-white italic tracking-tighter uppercase mb-1">Manifest <span className="text-modern-mint">Summary.</span></h3>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Registry ID: {Math.random().toString(36).slice(2, 9).toUpperCase()}</p>
+              </div>
+              
+              <div className="p-8 max-h-[400px] overflow-y-auto custom-scrollbar space-y-6">
+                {items.map(item => (
+                  <div key={item.id} className="flex gap-4 items-center group">
+                    <div className="w-16 h-16 bg-white/5 rounded-xl border border-white/10 overflow-hidden relative">
+                      <img src={item.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-opacity" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-white text-sm truncate uppercase italic italic tracking-tighter">{item.name}</h4>
+                      <p className="text-[10px] font-black text-modern-mint opacity-60 mt-0.5">{item.quantity} units @ ₹{item.price}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-bold text-white font-mono">₹{item.price * item.quantity}</span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-serif font-bold text-editorial-ink text-md">{item.name}</h4>
-                    <p className="text-[11px] uppercase font-bold text-editorial-muted mt-1">{item.quantity} Unit(s) at ₹{item.price}</p>
+                ))}
+              </div>
+
+              <div className="p-8 bg-black/20 border-t border-white/5">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-[11px] uppercase font-black tracking-widest text-white/40">
+                    <span>Sub-Clearing</span>
+                    <span className="text-white">₹{total().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] uppercase font-black tracking-widest text-white/40">
+                    <span>Dispatch Allocation</span>
+                    <span className="text-modern-mint italic">CREDITED</span>
+                  </div>
+                  <div className="pt-6 border-t border-white/10">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[12px] uppercase font-black tracking-[0.2em] text-white leading-none">Net Total</span>
+                      <span className="text-4xl font-black text-modern-mint italic leading-none block">₹{total().toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-12 space-y-4">
-              <div className="flex justify-between text-[11px] uppercase font-bold tracking-widest text-editorial-muted">
-                <span>Sub-Clearing</span>
-                <span>₹{total().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-[11px] uppercase font-bold tracking-widest text-editorial-muted">
-                <span>Dispatch Fee</span>
-                <span>₹0.00</span>
-              </div>
-              <div className="flex justify-between items-baseline pt-4 border-t border-editorial-ink">
-                <span className="text-[14px] uppercase font-black tracking-widest text-editorial-ink">Gross Total</span>
-                <span className="text-3xl font-serif font-black text-editorial-ink">₹{total().toFixed(2)}</span>
               </div>
             </div>
           </div>
